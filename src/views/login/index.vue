@@ -1,5 +1,7 @@
 <template>
   <div class="login-container">
+    <!-- 表单校验 1，添加model属性：整个表单数据 -->
+    <!-- 表单校验 2，添加rules属性：整个表单数据校验规则 -->
     <el-form
       ref="loginForm"
       :model="loginForm"
@@ -8,21 +10,22 @@
       auto-complete="on"
       label-position="left"
     >
+      <!-- 标题图片 -->
       <div class="title-container">
         <h3 class="title">
           <img src="@/assets/common/login-logo.png" alt="" />
         </h3>
       </div>
-
-      <el-form-item prop="username">
+      <!-- 表单区域 绑定prop的值为校验规则名 -->
+      <el-form-item prop="mobile">
         <span class="svg-container">
           <svg-icon icon-class="user" />
         </span>
         <el-input
-          ref="username"
-          v-model="loginForm.username"
-          placeholder="Username"
-          name="username"
+          ref="mobile"
+          v-model="loginForm.mobile"
+          placeholder="请输入手机号"
+          name="mobile"
           type="text"
           tabindex="1"
           auto-complete="on"
@@ -38,7 +41,7 @@
           ref="password"
           v-model="loginForm.password"
           :type="passwordType"
-          placeholder="Password"
+          placeholder="请输入密码"
           name="password"
           tabindex="2"
           auto-complete="on"
@@ -69,36 +72,30 @@
 </template>
 
 <script>
-import { validUsername } from '@/utils/validate'
-
 export default {
   name: 'Login',
   data() {
-    const validateUsername = (rule, value, callback) => {
-      if (!validUsername(value)) {
-        callback(new Error('Please enter the correct user name'))
-      } else {
-        callback()
-      }
-    }
-    const validatePassword = (rule, value, callback) => {
-      if (value.length < 6) {
-        callback(new Error('The password can not be less than 6 digits'))
-      } else {
-        callback()
-      }
-    }
     return {
       loginForm: {
-        username: 'admin',
-        password: '111111'
+        mobile: '13800000002',
+        password: '123456'
       },
       loginRules: {
-        username: [
-          { required: true, trigger: 'blur', validator: validateUsername }
+        // 规则名与数据名保持一致
+        mobile: [
+          { required: true, trigger: 'blur', message: '请输入手机号' },
+          {
+            pattern: /^(?:(?:\+|00)86)?1[3-9]\d{9}$/,
+            message: '手机号码格式不正确'
+          }
         ],
         password: [
-          { required: true, trigger: 'blur', validator: validatePassword }
+          { required: true, trigger: 'blur', message: '请输入密码' }
+          // {
+          //   pattern:
+          //     /^(?![a-zA-Z]+$)(?![A-Z0-9]+$)(?![A-Z\W_!@#$%^&*`~()-+=]+$)(?![a-z0-9]+$)(?![a-z\W_!@#$%^&*`~()-+=]+$)(?![0-9\W_!@#$%^&*`~()-+=]+$)[a-zA-Z0-9\W_!@#$%^&*`~()-+=]/,
+          //   message: '密码格式为大写字母/小写字母/数字/特殊符号，任意三项组合'
+          // }
         ]
       },
       loading: false,
@@ -125,24 +122,19 @@ export default {
         this.$refs.password.focus()
       })
     },
-    handleLogin() {
-      this.$refs.loginForm.validate((valid) => {
-        if (valid) {
-          this.loading = true
-          this.$store
-            .dispatch('user/login', this.loginForm)
-            .then(() => {
-              this.$router.push({ path: this.redirect || '/' })
-              this.loading = false
-            })
-            .catch(() => {
-              this.loading = false
-            })
-        } else {
-          console.log('error submit!!')
-          return false
-        }
-      })
+    // 登录
+    async handleLogin() {
+      try {
+        this.loading = true
+        await this.$refs.loginForm.validate()
+        await this.$store.dispatch('user/getToken', this.loginForm)
+        this.$router.push('/')
+        this.$message.success('登录成功')
+        this.loading = false
+      } catch (error) {
+        console.log(error)
+        this.loading = false
+      }
     }
   }
 }
