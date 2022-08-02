@@ -12,7 +12,7 @@ export default {
   actions: {
     async getToken(context,payload){       
         const res = await login(payload)
-        console.log(res);
+        // console.log(res);
         context.commit('upDataToken',res)      
     }
   }
