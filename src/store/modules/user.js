@@ -30,7 +30,7 @@ export default {
         const userBaseInfo= await getUserInfoApi()
         // 获取员工信息
         const userInfo = await getUserDetail(userBaseInfo.userId)
-        console.log(userInfo);
+        // console.log(userInfo);
         context.commit('setUserInfo',{...userBaseInfo,...userInfo})
       } catch (error) {
         console.log(error);
