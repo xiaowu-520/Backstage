@@ -14,7 +14,7 @@ service.interceptors.request.use( async config => {
     // 定义token存在的时间
     const currentTime = Date.now()
     const tokenTime = getTokenTime()
-    const timeout = 2*60*60*1000
+    const timeout = 24*60*60*1000
     if(currentTime - tokenTime > timeout){
       // 判断token是否过期，过期跳到登录页面
       await store.dispatch('user/logout')

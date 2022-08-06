@@ -18,10 +18,12 @@
             <span> 操作<i class="el-icon-arrow-down" /> </span>
             <!-- 下拉菜单 -->
             <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item>添加子部门</el-dropdown-item>
+              <el-dropdown-item @click.native="$emit('add',treeNode)">添加子部门</el-dropdown-item>
               <template v-if="!isRoot">
-                <el-dropdown-item>编辑子部门</el-dropdown-item>
-                <el-dropdown-item>删除子部门</el-dropdown-item>
+                <el-dropdown-item @click.native="$emit('edit',treeNode)">编辑子部门</el-dropdown-item>
+                <el-dropdown-item @click.native="onRemove"
+                  >删除子部门</el-dropdown-item
+                >
               </template>
             </el-dropdown-menu>
           </el-dropdown>
@@ -32,6 +34,7 @@
 </template>
 
 <script>
+import { delDepartments } from '@/api/department'
 export default {
   name: 'treeTools',
   data() {
@@ -51,7 +54,21 @@ export default {
 
   created() {},
 
-  methods: {}
+  methods: {
+    // 删除
+    async onRemove() {
+      try {
+        await this.$confirm('确定要删除该部门吗', '提示', {
+          confirmButtonText: '确认',
+          cancelButtonText: '取消',
+          type: 'warning'
+        })
+        await delDepartments(this.treeNode.id)
+        this.$message.success('删除成功')
+        this.$emit('remove')
+      } catch (error) {}
+    }
+  }
 }
 </script>
 
