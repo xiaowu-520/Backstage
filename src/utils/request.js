@@ -6,7 +6,7 @@ import { getTokenTime } from './auth';
 import router from "@/router";
 const service = axios.create({
     baseURL:process.env.VUE_APP_BASE_API,
-    timeout:5000
+    // timeout:5000
 }) // 创建一个axios的实例
 service.interceptors.request.use( async config => {
      // 在这个位置需要统一的去注入token
