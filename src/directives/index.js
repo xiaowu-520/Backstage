@@ -7,8 +7,19 @@ export const imgError = {  //头像加载失败就执行该指令
     inserted:function(el,{value}){  
       // 聚焦元素
       // 当图片有地址 但是地址没有加载成功的时候 会报错 会触发图片的一个事件 => onerror
-      el.onerror = function() {
+      if(!el.src){
+        el.src = value
+      }else{
+        el.onerror = function() {
+          el.src = value
+        }
+      }
+      
+    },
+    //指令绑定的元素更新时触发
+    update(el,{value}) {
+      if(!el.src){
         el.src = value
       }
-    }
+    },
   }

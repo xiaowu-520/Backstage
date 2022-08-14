@@ -16,6 +16,22 @@ import '@/icons' // icon
 import '@/permission' // permission control
 import * as directives from '@/directives' //引入自定义指令
 
+import components from '@/components'
+import * as filters from '@/filters' // 引入工具类
+
+//统一遍历自定义指令，并使用
+for (let key in directives){
+  Vue.directive(key,directives[key])
+}
+
+// 统一注册过滤器
+for (let key in filters){
+  Vue.filter(key,filters[key])
+}
+
+// 统一注册封装的组件
+Vue.use(components)
+
 
 
 /**
@@ -38,10 +54,8 @@ Vue.use(ElementUI, { locale })
 
 Vue.config.productionTip = false
 
-//遍历自定义指令，并使用
-for (let key in directives){
-  Vue.directive(key,directives[key])
-}
+
+
 
 
 new Vue({
