@@ -1,28 +1,33 @@
 <template>
   <div class="dashboard-container">
     <div class="app-container">
-      <!-- 头部区域 -->
       <page-tools>
-        <span slot="tag-left">共166条记录</span>
-        <template slot="tag-right">
-          <el-button size="small" type="warning" @click="$router.push('/import')">导入</el-button>
-          <el-button size="small" type="danger">导出</el-button>
-          <el-button size="small" type="primary" @click="showDialog = true"
+        <span slot="left-tag">共166条记录</span>
+        <template slot="right">
+          <el-button
+            size="small"
+            type="warning"
+            @click="$router.push('/import')"
+            >导入</el-button
+          >
+          <el-button size="small" type="danger" @click="exportExcel"
+            >导出</el-button
+          >
+          <el-button size="small" type="primary" @click="addEmployee"
             >新增员工</el-button
           >
         </template>
       </page-tools>
       <!-- 放置表格和分页 -->
-      <el-card>
-        <el-table :data="employeesList">
+      <el-card v-loading="loading">
+        <el-table border :data="list">
           <el-table-column label="序号" sortable="" type="index" />
           <el-table-column label="姓名" sortable="" prop="username" />
           <el-table-column label="员工">
             <template slot-scope="{ row }">
               <img
+                v-imgError="require('@/assets/common/bigUserHeader.png')"
                 :src="row.staffPhoto"
-                v-imgError="imgUrl"
-                alt=""
                 style="
                   border-radius: 50%;
                   width: 100px;
@@ -37,32 +42,40 @@
             label="聘用形式"
             sortable=""
             prop="formOfEmployment"
-            :formatter="formatterOfEmployment"
+            :formatter="formOfEmployment"
           />
           <el-table-column label="部门" sortable="" prop="departmentName" />
-          <el-table-column label="入职时间">
-            <template slot-scope="{ row }">{{
-              row.timeOfEntry | formatTime
-            }}</template>
-          </el-table-column>
-          <el-table-column label="账户状态">
+          <el-table-column label="入职时间" sortable="" prop="timeOfEntry">
             <template slot-scope="{ row }">
-              <!-- 根据当前状态来确定 是否打开开关 -->
+              {{ row.timeOfEntry | formatTime }}
+            </template>
+          </el-table-column>
+          <el-table-column label="账户状态" sortable="" prop="enableState">
+            <template slot-scope="{ row }">
               <el-switch
                 :value="row.enableState === 1"
                 active-color="#13ce66"
                 inactive-color="#ff4949"
-              />
+              >
+              </el-switch>
             </template>
           </el-table-column>
           <el-table-column label="操作" sortable="" fixed="right" width="280">
             <template slot-scope="{ row }">
-              <el-button type="text" size="small">查看</el-button>
+              <el-button
+                type="text"
+                size="small"
+                @click="$router.push('/employees/detail/' + row.id)"
+                >查看</el-button
+              >
               <el-button type="text" size="small">转正</el-button>
               <el-button type="text" size="small">调岗</el-button>
               <el-button type="text" size="small">离职</el-button>
               <el-button type="text" size="small">角色</el-button>
-              <el-button type="text" size="small" @click="onRemove(row.id)"
+              <el-button
+                type="text"
+                size="small"
+                @click="deleteEmployee(row.id)"
                 >删除</el-button
               >
             </template>
@@ -76,41 +89,41 @@
           style="height: 60px"
         >
           <el-pagination
-            :total="total"
-            :page-size="params.size"
-            @current-change="currentChange"
             layout="prev, pager, next"
+            :page-size="page.size"
+            :current-page="page.page"
+            :total="page.total"
+            @current-change="changePage"
           />
         </el-row>
       </el-card>
     </div>
-    <add-employees
-      :showDialog.sync="showDialog"
-      @addSuccess="getEmployeeList"
+    <AddEmployee
+      :visible.sync="showAddEmployee"
+      @add-success="getEmployeeList"
     />
   </div>
 </template>
 
 <script>
-import { getEmployeeListApi, delEmployee } from '@/api/employees'
-import employees from '@/constant/employees'
-import AddEmployees from './components/add-employees'
+import { getEmployeeList, delEmployee } from '@/api/employess'
+import employess from '@/constant/employees'
+import AddEmployee from './components/add-employee.vue'
+const { exportExcelMapPath, hireType } = employess
 export default {
+  components: {
+    AddEmployee
+  },
   data() {
     return {
-      imgUrl:
-        'https://ts1.cn.mm.bing.net/th/id/R-C.1c25c13d849308de825f6f2f2b9c7320?rik=zdVdEBsVNWSSnQ&riu=http%3a%2f%2fqqwjx.com%2fuploads%2fallimg%2f130724%2f1-130H40S029.jpg&ehk=9a%2f6RFDZMNtowxLRxiUzNjzvfhYeRFOY3mg7LcDuH%2b8%3d&risl=&pid=ImgRaw&r=0&sres=1&sresct=1',
-      employeesList: [],
-      total: 0,
-      showDialog: false,
-      params: {
-        page: 1,
-        size: 10
-      }
+      loading: false,
+      list: [], // 接数据的
+      page: {
+        page: 1, // 当前页码
+        size: 5
+      },
+      showAddEmployee: false
     }
-  },
-  components: {
-    AddEmployees
   },
 
   created() {
@@ -118,33 +131,58 @@ export default {
   },
 
   methods: {
-    // 获取员工数据
-    async getEmployeeList() {
-      const res = await getEmployeeListApi(this.params)
-      this.employeesList = res.rows
-      this.total = res.total
-      // console.log(res)
-    },
-    // 分页
-    currentChange(val) {
-      this.params.page = val
+    changePage(newPage) {
+      this.page.page = newPage
       this.getEmployeeList()
     },
-    // 格式化聘用形式
-    formatterOfEmployment(row, col, cellValue, index) {
-      const findItem = employees.hireType.find((item) => item.id === cellValue)
+    async getEmployeeList() {
+      this.loading = true
+      const { total, rows } = await getEmployeeList(this.page)
+      this.page.total = total
+      this.list = rows
+      this.loading = false
+    },
+    formOfEmployment(row, column, cellValue, index) {
+      const findItem = employess.hireType.find((item) => item.id === cellValue)
       return findItem ? findItem.value : '未知'
     },
-    // 删除员工
-    async onRemove(id) {
+    async deleteEmployee(id) {
       try {
-        await this.$confirm('是否删除？')
+        await this.$confirm('是否删除该员工吗')
         await delEmployee(id)
-        this.$message.success('删除成功')
         this.getEmployeeList()
+        this.$message.success('删除员工成功')
       } catch (error) {
-        this.$message.error(error)
+        console.log(error)
       }
+    },
+    addEmployee() {
+      this.showAddEmployee = true
+    },
+    async exportExcel() {
+      const { export_json_to_excel } = await import('@/vendor/Export2Excel')
+      const { rows } = await getEmployeeList({
+        page: 1,
+        size: this.page.total
+      })
+      const header = Object.keys(exportExcelMapPath)
+      const data = rows.map((item) => {
+        return header.map((h) => {
+          if (h === '聘用形式') {
+            const findItem = hireType.find((hire) => {
+              return hire.id === item[exportExcelMapPath[h]]
+            })
+            return findItem ? findItem.value : '未知'
+          }
+        })
+      })
+      export_json_to_excel({
+        header,
+        data,
+        filename: '员工列表',
+        autoWidth: true,
+        bookType: 'xlsx'
+      })
     }
   }
 }

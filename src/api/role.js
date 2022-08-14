@@ -1,38 +1,32 @@
 import request from '@/utils/request'
 
 /**
- * 获取数据
- * @param {*} params 
- * @returns 
+ * 获取角色列表
  */
-export function getRolesApi(params) {
-    return request({
-      url: 'sys/role',
-      params
-    })
+export const getRolesApi = (params) => {
+  return request({
+    url: 'sys/role',
+    params
+  })
 }
 
 /**
- * 新增角色
- * @param {*} data 
- * @returns 
+ * 新增角色列表
  */
-export function addRolesApi(data) {
-    return request({
-      url: 'sys/role',
-      method:"POST",
-      data
-    })
+export const addRolesApi = (params) => {
+  return request({
+    method: 'POST',
+    url: 'sys/role',
+    params
+  })
 }
 
 /**
- * 获取企业详情
- * @param {*} data 
- * @returns 
+ * 读取公司信息
  */
-export function getCompanyInfoApi(id) {
-    return request({
-      url: `/company/${id}`,
-      
-    })
+
+export function getCompanyInfo(companyId) {
+  return request({
+    url: `/company/${companyId}`
+  })
 }

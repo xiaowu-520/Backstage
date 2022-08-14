@@ -1,7 +1,6 @@
 <template>
-  <el-dialog title="新增员工" :visible="showDialog" @close="onClose">
-    <!-- 表单 -->
-    <el-form ref="form" :model="formData" :rules="rules" label-width="120px">
+  <el-dialog title="新增员工" :visible="visible" width="50%" @close="onClose">
+    <el-form :model="formData" :rules="rules" label-width="120px" ref="form">
       <el-form-item label="姓名" prop="username">
         <el-input
           v-model="formData.username"
@@ -31,7 +30,7 @@
         >
           <!-- 遍历只能遍历组件的数据 -->
           <el-option
-            v-for="item in hireType"
+            v-for="item in EmployeeEnum.hireType"
             :key="item.id"
             :label="item.value"
             :value="item.id"
@@ -49,16 +48,17 @@
         <el-select
           v-model="formData.departmentName"
           style="width: 50%"
-          placeholder="请选择"
-          @focus="getDepts"
+          placeholder="请选择部门"
+          @focus="getDepartments"
           ref="deptSelect"
         >
-          <el-option value="" v-loading="isTreeLoading" class="treeOption">
+          <!-- 放置一个tree组件 -->
+          <el-option v-loading="isTreeloading" value="" class="treeOption">
             <el-tree
-              :data="depts"
-              :props="treeProps"
-              @node-click="treeNodeClick"
-            ></el-tree>
+              :data="treeData"
+              :props="{ label: 'name' }"
+              @node-click="selectNode"
+            />
           </el-option>
         </el-select>
       </el-form-item>
@@ -70,30 +70,32 @@
         />
       </el-form-item>
     </el-form>
-    <!-- footer插槽 -->
-    <template v-slot:footer>
-      <el-row type="flex" justify="center">
-        <el-col :span="6">
-          <el-button size="small" @click="onClose">取消</el-button>
-          <el-button type="primary" size="small" @click="onSave"
-            >确定</el-button
-          >
-        </el-col>
-      </el-row>
-    </template>
+    <div slot="footer" class="dialog-footer">
+      <el-button @click="onClose">取 消</el-button>
+      <el-button type="primary" @click="onSave">确 定</el-button>
+    </div>
   </el-dialog>
 </template>
 
 <script>
-import employees from '@/constant/employees'
-import { getDepartments } from '@/api/department'
-import { addEmployee } from '@/api/employees'
+import EmployeeEnum from '@/constant/employees'
+import { getDeptsApi } from '@/api/departments'
 import { tranListToTreeData } from '@/utils'
-const { hireType } = employees
+import { addEmployee } from '@/api/employess'
 export default {
+  props: {
+    visible: {
+      type: Boolean,
+      required: true
+    }
+  },
   data() {
     return {
-      hireType,
+      EmployeeEnum, // 在data中定义数据
+      // 表单数据
+      treeData: [], // 定义数组接收树形数据
+      showTree: false, // 控制树形的显示或者隐藏
+      loading: false, // 控制树的显示或者隐藏进度条
       formData: {
         username: '',
         mobile: '',
@@ -103,6 +105,7 @@ export default {
         timeOfEntry: '',
         correctionTime: ''
       },
+      isTreeloading: false,
       rules: {
         username: [
           { required: true, message: '用户姓名不能为空', trigger: 'blur' },
@@ -130,60 +133,48 @@ export default {
           { required: true, message: '部门不能为空', trigger: 'change' }
         ],
         timeOfEntry: [{ required: true, message: '入职时间', trigger: 'blur' }]
-      },
-      depts: [],
-      treeProps: {
-        label: 'name'
-      },
-      isTreeLoading: false
+      }
     }
   },
-  props: {
-    showDialog: {
-      type: Boolean,
-      default: false
-    }
-  },
+
+  created() {},
+
   methods: {
-    //关闭
     onClose() {
-      this.$emit('update:showDialog', false)
-      this.$refs.form.resetFields()
+      this.$emit('update:visible', false)
     },
-    //获取部门数据
-    async getDepts() {
-      this.isTreeLoading = true
-      const { depts } = await getDepartments()
-      tranListToTreeData(depts, '')
-      this.depts = depts
-      this.isTreeLoading = false
+    async getDepartments() {
+      this.isTreeloading = true
+      const { depts } = await getDeptsApi()
+      this.treeData = tranListToTreeData(depts, '')
+      console.log(this.treeData)
+      this.isTreeloading = false
     },
-    //点击树形下拉列表获取点击内容
-    treeNodeClick(row) {
+    selectNode(row) {
       this.formData.departmentName = row.name
       this.$refs.deptSelect.blur()
     },
-    // 点击确定
     onSave() {
       this.$refs.form.validate(async (valid) => {
         if (!valid) return
         await addEmployee(this.formData)
         this.$message.success('添加成功')
         this.onClose()
-        this.$emit('addSuccess')
+        this.$emit('add-success')
       })
     }
   }
 }
 </script>
 
-<style scoped lang="scss">
-.el-select-dropdown__item.hover,
-.el-select-dropdown__item:hover {
+<style lang="scss" scoped>
+.el-select-dropdown__item:hover,
+.el-select-dropdown__item.hover {
   background-color: #fff;
   overflow: unset;
 }
+
 .treeOption {
-  height: 120px;
+  height: 100px;
 }
 </style>

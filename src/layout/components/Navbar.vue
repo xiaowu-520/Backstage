@@ -5,21 +5,21 @@
       class="hamburger-container"
       @toggleClick="toggleSideBar"
     />
-
     <div class="app-breadcrumb">
-      {{ $store.state.user.userInfo.companyName }}
+      {{ userInfo.company }}
       <span class="breadBtn">体验版</span>
     </div>
+    <!-- <breadcrumb class="breadcrumb-container" /> -->
 
     <div class="right-menu">
       <el-dropdown class="avatar-container" trigger="click">
         <div class="avatar-wrapper">
           <img
-            :src="$store.state.user.userInfo.staffPhoto"
+            :src="userInfo.staffPhoto"
             class="user-avatar"
             v-imgError="defaultImg"
           />
-          <span>{{ $store.state.user.userInfo.username }}</span>
+          <span>{{ userInfo.username }}</span>
           <i class="el-icon-caret-bottom" />
         </div>
         <el-dropdown-menu slot="dropdown" class="user-dropdown">
@@ -36,23 +36,24 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 import Breadcrumb from '@/components/Breadcrumb'
 import Hamburger from '@/components/Hamburger'
+import defaultImg from '@/assets/common/head.jpg'
 
 export default {
-  data() {
-    return {
-      defaultImg:
-        'https://img2.woyaogexing.com/2022/07/23/2293c07d0fcfcdc2!400x400.jpg'
-    }
-  },
   components: {
     Breadcrumb,
     Hamburger
   },
+  data() {
+    return {
+      defaultImg
+    }
+  },
   computed: {
-    ...mapGetters(['sidebar', 'avatar'])
+    ...mapGetters(['sidebar', 'avatar']),
+    ...mapState('user', ['userInfo'])
   },
   methods: {
     toggleSideBar() {
@@ -74,6 +75,20 @@ export default {
   background-image: -webkit-linear-gradient(left, #3d6df8, #5b8cff);
   box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
 
+  .hamburger-container {
+    line-height: 46px;
+    height: 100%;
+    float: left;
+    cursor: pointer;
+    transition: background 0.3s;
+    -webkit-tap-highlight-color: transparent;
+    color: #ffffff;
+    fill: currentColor;
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.025);
+    }
+  }
   .app-breadcrumb {
     display: inline-block;
     font-size: 18px;
@@ -90,21 +105,6 @@ export default {
       line-height: 30px;
       border-radius: 10px;
       margin-left: 15px;
-    }
-  }
-
-  .hamburger-container {
-    line-height: 46px;
-    height: 100%;
-    float: left;
-    cursor: pointer;
-    transition: background 0.3s;
-    -webkit-tap-highlight-color: transparent;
-    color: #ffffff;
-    fill: currentColor;
-
-    &:hover {
-      background: rgba(0, 0, 0, 0.025);
     }
   }
 
@@ -149,6 +149,7 @@ export default {
         display: flex;
         align-items: center;
         color: #fff;
+        cursor: pointer;
 
         span {
           margin: 0 3px;
@@ -165,7 +166,6 @@ export default {
           cursor: pointer;
           position: absolute;
           right: -20px;
-          top: 25px;
           font-size: 12px;
         }
       }

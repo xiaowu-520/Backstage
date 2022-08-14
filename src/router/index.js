@@ -1,6 +1,5 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-// 引入多个模块的规则
 import approvalsRouter from './modules/approvals'
 import departmentsRouter from './modules/departments'
 import employeesRouter from './modules/employees'
@@ -15,7 +14,6 @@ Vue.use(Router)
 
 /* Layout */
 import Layout from '@/layout'
-
 
 /**
  * Note: sub-menu only appear when route children.length >= 1
@@ -58,18 +56,21 @@ export const constantRoutes = [
     path: '/',
     component: Layout,
     redirect: '/dashboard',
-    children: [{
-      path: 'dashboard',
-      name: 'Dashboard',
-      component: () => import('@/views/dashboard/index'),
-      meta: { title: '首页', icon: 'dashboard' }
-    }]
-  }, 
+    children: [
+      {
+        path: 'dashboard',
+        name: 'Dashboard',
+        component: () => import('@/views/dashboard/index'),
+        meta: { title: '首页', icon: 'dashboard' }
+      }
+    ]
+  },
 
   // 404 page must be placed at the end !!!
   { path: '*', redirect: '/404', hidden: true }
 ]
 
+// 动态路由：准备好项目所有动态路由，基于后端返回的用户权限对动态路由权限控制
 export const asyncRoutes = [
   approvalsRouter,
   departmentsRouter,
@@ -81,15 +82,14 @@ export const asyncRoutes = [
   socialRouter,
   importRouter
 ]
-
-const createRouter = () => new Router({
-  // mode: 'history', // require service support
-  scrollBehavior: () => ({ y: 0 }),
-  routes: [...constantRoutes,...asyncRoutes]
-})
+const createRouter = () =>
+  new Router({
+    // mode: 'history', // require service support
+    scrollBehavior: () => ({ y: 0 }),
+    routes: [...constantRoutes, ...asyncRoutes]
+  })
 //vueRouter实例
 const router = createRouter()
-
 
 // Detail see: https://github.com/vuejs/vue-router/issues/1234#issuecomment-357941465
 export function resetRouter() {

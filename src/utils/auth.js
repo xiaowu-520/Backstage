@@ -14,10 +14,10 @@ export function removeToken() {
   return Cookies.remove(TokenKey)
 }
 
-export function setTokenTime(){
-  Cookies.set('tokenTime',Date.now())
+export const setTokenTime = () => {
+  Cookies.set('tokenTime', Date.now())
 }
 
-export function getTokenTime(){
+export const getTokenTime = () => {
   return Cookies.get('tokenTime')
 }

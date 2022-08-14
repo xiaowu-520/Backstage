@@ -1,37 +1,37 @@
 import request from '@/utils/request'
 
-/**
- * 
- * @param {*} data 登录需要的信息
- * @returns Promise
- */
 export function login(data) {
   return request({
     url: '/sys/login',
-    method: 'post',
+    method: 'POST',
     data
   })
 }
 
-/**
- * 获取用户信息
- * @returns Promise
- */
-export function getUserInfoApi() {
+/* 获取用户基本资料 */
+export const getUserInfoApi = () => {
   return request({
-    url: '/sys/profile',
-    method: 'post',
+    method: 'POST',
+    url: '/sys/profile'
   })
 }
 
-/**
- * 根据用户ID获取详情数据
- * @param {*} id 用户id
- * @returns 
- */
-export function getUserDetail(id) {
+/* 根据用户信息获取头像 */
+export const getUserDetail = (id) => {
   return request({
-    url: `/sys/user/${id}`,   
+    url: '/sys/user/' + id
   })
 }
 
+
+/** *
+ *
+ * 保存员工的基本信息
+ * **/
+ export function saveUserDetailById(data) {
+  return request({
+    url: `/sys/user/${data.id}`,
+    method: 'put',
+    data
+  })
+}

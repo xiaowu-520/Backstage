@@ -1,6 +1,5 @@
-import dayjs from 'dayjs' // 引入工具类
+import dayjs from 'dayjs'
 
-// 过滤器
-export const  formatTime = (val) => {
-    return dayjs(val).format('YYYY-MM-DD')
+export const formatTime = (val) => {
+  return dayjs(val).format('YYYY-MM-DD')
 }

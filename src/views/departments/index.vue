@@ -1,84 +1,79 @@
 <template>
-  <div class="dashboard-container">
+  <div class="dashboard-container" v-loading="loading">
     <div class="app-container">
-      <el-card class="box-card" v-loading="loading">
-        <!-- 用了一个行列布局 -->
-        <treeTools :treeNode="company" :is-root="true" @add="showAddDept" />
+      <el-card class="box-card">
+        <!-- 头部 -->
+        <TreeTools
+          :treeNode="company"
+          :isRoot="true"
+          @add="dialogVisible = true"
+        />
+        <!-- 树形 -->
         <el-tree
           :data="departs"
           :props="defaultProps"
-          :default-expand-all="true"
+          default-expand-all
+          @remove="getDeptsApi"
         >
           <template v-slot="{ data }">
-            <treeTools
-              :treeNode="data"
-              @remove="getDepartments"
-              @add="showAddDept"
-              @edit="showEdit"
-            />
+            <TreeTools :treeNode="data" @add="showAddDept" @edit="showEdit" />
           </template>
         </el-tree>
       </el-card>
     </div>
     <!-- 添加部门弹层 -->
-    <addDept
-      @addSuccess="getDepartments"
+    <AddDept
       :visible.sync="dialogVisible"
       :currentNode="currentNode"
+      @addDepts="getDeptsApi"
       ref="addDept"
     />
   </div>
 </template>
 
 <script>
-import treeTools from './components/tree-tools.vue'
-import { getDepartments } from '@/api/department'
-import { tranListToTreeData } from '@/utils/index'
-import addDept from './components/add-dept.vue'
-import { Loading } from 'element-ui'
+import TreeTools from './compoents/tree-tools.vue'
+import AddDept from './compoents/add-dept.vue'
+import { getDeptsApi } from '@/api/departments'
+import { tranListToTreeData } from '@/utils'
 export default {
+  components: {
+    TreeTools,
+    AddDept
+  },
   data() {
     return {
       defaultProps: {
         label: 'name'
       },
-      departs: [],
-      company: { name: '传智播客', manager: '负责人' },
+      departs: [
+        { name: '总裁办', children: [{ name: '董事会' }] },
+        { name: '行政部' },
+        { name: '人事部' }
+      ],
+      company: { name: '传智教育', manager: '负责人' },
       dialogVisible: false,
       currentNode: {},
       loading: false
     }
   },
 
-  components: {
-    treeTools,
-    addDept
-  },
-
   created() {
-    this.getDepartments()
+    this.getDeptsApi()
   },
 
   methods: {
-    //  获取数据
-    async getDepartments() {
-      try {
-        this.loading = true
-        const res = await getDepartments()
-        console.log(res)
-        this.departs = tranListToTreeData(res.depts, '')
-      } catch (error) {
-        console.log(error)
-      } finally {
-        this.loading = false
-      }
+    async getDeptsApi() {
+      this.loading = true
+      const res = await getDeptsApi()
+      this.departs = tranListToTreeData(res.depts, '')
+      this.loading = false
     },
-    // 传递当前点击的部门数据
     showAddDept(val) {
       this.dialogVisible = true
+      // console.log(val)
       this.currentNode = val
     },
-    // 编辑
     showEdit(val) {
       this.dialogVisible = true
       this.$refs.addDept.getDeptById(val.id)
