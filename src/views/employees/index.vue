@@ -34,6 +34,7 @@
                   height: 100px;
                   padding: 10px;
                 "
+                @click="showErCodeDialog(row.staffPhoto)"
               />
             </template>
           </el-table-column>
@@ -102,6 +103,15 @@
       :visible.sync="showAddEmployee"
       @add-success="getEmployeeList"
     />
+    <el-dialog
+      title="二维码"
+      :visible.sync="showCodeDialog"
+      @close="showCodeDialog = false"
+    >
+      <el-row type="flex" justify="center">
+        <canvas ref="myCanvas" />
+      </el-row>
+    </el-dialog>
   </div>
 </template>
 
@@ -109,6 +119,7 @@
 import { getEmployeeList, delEmployee } from '@/api/employess'
 import employess from '@/constant/employees'
 import AddEmployee from './components/add-employee.vue'
+import QrCode from 'qrcode'
 const { exportExcelMapPath, hireType } = employess
 export default {
   components: {
@@ -122,7 +133,8 @@ export default {
         page: 1, // 当前页码
         size: 5
       },
-      showAddEmployee: false
+      showAddEmployee: false,
+      showCodeDialog: false
     }
   },
 
@@ -182,6 +194,17 @@ export default {
         filename: '员工列表',
         autoWidth: true,
         bookType: 'xlsx'
+      })
+    },
+    // 二维码弹框
+    showErCodeDialog(staffPhoto) {
+      if (!staffPhoto) return this.$message.error('该用户未设置头像')
+      this.showCodeDialog = true
+      // 有一个方法可以在上一次数据更新完毕，页面渲染完毕之后
+      this.$nextTick(() => {
+        // 此时可以确认已经有ref对象了
+        QrCode.toCanvas(this.$refs.myCanvas, staffPhoto) // 将地址转化成二维码
+        // 如果转化的二维码后面信息 是一个地址的话 就会跳转到该地址 如果不是地址就会显示内容
       })
     }
   }
