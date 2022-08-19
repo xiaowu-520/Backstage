@@ -72,7 +72,7 @@
               <el-button type="text" size="small">转正</el-button>
               <el-button type="text" size="small">调岗</el-button>
               <el-button type="text" size="small">离职</el-button>
-              <el-button type="text" size="small">角色</el-button>
+              <el-button type="text" size="small" @click="onAssignRole(row)">角色</el-button>
               <el-button
                 type="text"
                 size="small"
@@ -103,6 +103,7 @@
       :visible.sync="showAddEmployee"
       @add-success="getEmployeeList"
     />
+    <!-- 头像二维码 -->
     <el-dialog
       title="二维码"
       :visible.sync="showCodeDialog"
@@ -112,6 +113,8 @@
         <canvas ref="myCanvas" />
       </el-row>
     </el-dialog>
+    <!-- 角色分配 -->
+    <AssignRole :showRoleDialog.sync="showRoleDialog" :userId="AssignRoleId" />
   </div>
 </template>
 
@@ -119,11 +122,13 @@
 import { getEmployeeList, delEmployee } from '@/api/employess'
 import employess from '@/constant/employees'
 import AddEmployee from './components/add-employee.vue'
+import AssignRole from './components/assign-role.vue'
 import QrCode from 'qrcode'
 const { exportExcelMapPath, hireType } = employess
 export default {
   components: {
-    AddEmployee
+    AddEmployee,
+    AssignRole
   },
   data() {
     return {
@@ -134,7 +139,9 @@ export default {
         size: 5
       },
       showAddEmployee: false,
-      showCodeDialog: false
+      showCodeDialog: false,
+      showRoleDialog:false,
+      AssignRoleId:''
     }
   },
 
@@ -206,6 +213,11 @@ export default {
         QrCode.toCanvas(this.$refs.myCanvas, staffPhoto) // 将地址转化成二维码
         // 如果转化的二维码后面信息 是一个地址的话 就会跳转到该地址 如果不是地址就会显示内容
       })
+    },
+    // 打开角色对话框
+    onAssignRole(val){
+      this.showRoleDialog = true
+      this.AssignRoleId = val.id
     }
   }
 }

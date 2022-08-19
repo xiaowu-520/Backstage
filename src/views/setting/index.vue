@@ -35,7 +35,7 @@
               align="center"
             >
               <template>
-                <el-button size="small" type="success">分配权限</el-button>
+                <el-button size="small" type="success" @click="showPermDg">分配权限</el-button>
                 <el-button size="small" type="primary">编辑</el-button>
                 <el-button size="small" type="danger">删除</el-button>
               </template>
@@ -99,11 +99,37 @@
         <el-button type="primary" @click="onAddRole">确 定</el-button>
       </span>
     </el-dialog>
+    <!-- 给角色分配权限 -->
+    <el-dialog title="分配权限" :visible="showPermDialog" @close="btnPermCancel">
+      <!-- 权限是一颗树 -->
+      <!-- 将数据绑定到组件上 -->
+      <!-- check-strictly 如果为true 那表示父子勾选时  不互相关联 如果为false就互相关联 -->
+      <!-- id作为唯一标识 -->
+      <el-tree
+        ref="permTree"
+        :data="permissions"
+        :props="{label:'name'}"
+        show-checkbox
+        check-strictly
+        default-expand-all
+        :default-checked-keys="selectCheck"
+        node-key="id"
+      />
+      <!-- 确定 取消 -->
+      <el-row slot="footer" type="flex" justify="center">
+        <el-col :span="6">
+          <el-button type="primary" size="small" @click="btnPermOK">确定</el-button>
+          <el-button size="small" @click="btnPermCancel">取消</el-button>
+        </el-col>
+      </el-row>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import { getRolesApi, addRolesApi, getCompanyInfo } from '@/api/role'
+import {getPermissionList} from '@/api/permission'
+import {tranListToTreeData} from '@/utils/index'
 export default {
   data() {
     return {
@@ -113,6 +139,7 @@ export default {
       pageSize: 3,
       page: 1,
       dialogVisible: false,
+      showPermDialog:false,
       addRoleFormRules: {
         name: [{ required: true, message: '角色名称不能为空', trigger: 'blur' }]
       },
@@ -120,13 +147,17 @@ export default {
         name: '',
         description: ''
       },
-      formData: {}
+      formData: {},
+      permissions:[], // 专门用来接收权限数据 树形数据
+       selectCheck: [], // 定义一个数组来接收 已经选中的节点
+      roleId: null // 用来记录分配角色的id
     }
   },
 
   created() {
     this.getRoles()
     this.getCompanyInfo()
+    this.getPermissions()
   },
 
   methods: {
@@ -163,6 +194,21 @@ export default {
         this.$store.state.user.userInfo.companyId
       )
       this.formData = res
+    },
+    // 关闭分配权限弹层
+    btnPermCancel(){
+      this.showPermDialog = false
+    },
+    showPermDg(){
+      this.showPermDialog = true
+    },
+    // 保存权限
+    btnPermOK(){},
+    // 获取权限列表
+    async getPermissions(){
+      const res = await getPermissionList()
+      const treePermission = await tranListToTreeData(res,'0')
+      this.permissions = treePermission
     }
   }
 }
