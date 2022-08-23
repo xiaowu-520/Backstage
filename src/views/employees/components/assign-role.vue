@@ -1,74 +1,77 @@
 <template>
-  <el-dialog title="分配角色" :visible="showRoleDialog" @open="onOpen">
-    <!-- el-checkbox-group选中的是 当前用户所拥有的角色  需要绑定 当前用户拥有的角色-->
-    <el-checkbox-group v-model="roleIds">
-      <!-- 选项 -->
-      <el-checkbox v-for="item in list" :key="item.id" :label="item.id">
+  <el-dialog @open="onOpen" @close="close" title="分配角色" :visible="visible">
+    <el-checkbox-group v-model="checkList">
+      <!-- label: 渲染 name -->
+      <!-- 会记录选中值 id -->
+      <el-checkbox v-for="item in roles" :key="item.id" :label="item.id">
+        <!-- 插槽也可以用于渲染 -->
         {{ item.name }}
       </el-checkbox>
     </el-checkbox-group>
-    <el-row slot="footer" type="flex" justify="center">
-      <el-col :span="6">
-        <el-button type="primary" size="small" @click="assignRole">确定</el-button>
-        <el-button size="small" @click="close">取消</el-button>
-      </el-col>
-    </el-row>
+    <span slot="footer" class="dialog-footer">
+      <el-button @click="close">取 消</el-button>
+      <el-button type="primary" @click="assignRole">确 定</el-button>
+    </span>
   </el-dialog>
 </template>
 
 <script>
 import { getRolesApi } from '@/api/role'
-import {getUserDetail} from '@/api/user'
-import {assignRoles} from '@/api/employess'
+import { getUserDetail } from '@/api/user'
+import { assignRoles } from '@/api/employees'
 export default {
   data() {
     return {
-      list: [], // 角色列表
-      roleIds: []
+      checkList: [], // 记录选中的角色
+      roles: [],
     }
   },
+
   props: {
-    showRoleDialog: {
+    visible: {
       type: Boolean,
-      default: false
+      required: true,
     },
-    // 用户的id 用来查询当前用户的角色信息
-    userId: {
+    employeesId: {
       type: String,
-      default: null
-    }
+      required: true,
+    },
   },
+
   created() {},
+
   methods: {
-    //  获取所有角色
-    async getRoleList() {
-      const { rows } = await getRolesApi()
-      this.list = rows
-    //   console.log(rows)
-    },
     close() {
-      this.$emit('update:showRoleDialog', false)
+      this.$emit('update:visible', false)
     },
+    // 获取角色列表
+    async getRolesList() {
+      const { rows } = await getRolesApi()
+      this.roles = rows
+    },
+    // 监听对话框打开
     onOpen() {
-      this.getRoleList()
+      this.getRolesList()
       this.getEmployeesRoles()
     },
     // 获取员工角色
-    async getEmployeesRoles(){
-        const {roleIds} = await getUserDetail(this.userId)
-        // console.log(roleIds);
-        this.roleIds = roleIds
+    async getEmployeesRoles() {
+      // console.log()
+      const { roleIds } = await getUserDetail(this.employeesId)
+      this.checkList = roleIds
     },
-    // 分配角色权限
-    async assignRole(){
-        if(!this.roleIds.length) return this.$message.error('请选择角色')
-        await assignRoles({
-            id: this.userId, 
-            roleIds: this.roleIds
-        })
-        this.$message.success('分配成功')
-        this.close()
-    }
-  }
+    // 分配角色
+    async assignRole() {
+      if (!this.checkList.length) return this.$message.error('请选择角色')
+      await assignRoles({
+        id: this.employeesId,
+        roleIds: this.checkList,
+      })
+      this.$message.success('分配成功')
+      this.close()
+    },
+  },
 }
 </script>
+
+<style scoped lang="less"></style>

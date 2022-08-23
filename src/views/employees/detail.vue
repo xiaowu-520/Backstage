@@ -2,8 +2,8 @@
   <div class="dashboard-container">
     <div class="app-container">
       <el-card>
-        <el-tabs v-model="activeName" @tab-click="tabHandleClick">
-          <el-tab-pane label="登录账户设置">
+        <el-tabs v-model="activeName" @tab-click="handleTabClick">
+          <el-tab-pane name="account" label="登录账户设置">
             <!-- 放置表单 -->
             <el-form
               label-width="120px"
@@ -24,11 +24,11 @@
               </el-form-item>
             </el-form>
           </el-tab-pane>
-          <el-tab-pane label="个人详情">
-            <userInfo />
+          <el-tab-pane name="user" label="个人详情">
+            <user-info />
           </el-tab-pane>
-          <el-tab-pane label="岗位信息">
-            <jobInfo/>
+          <el-tab-pane name="job" label="岗位信息">
+            <JobInfo />
           </el-tab-pane>
         </el-tabs>
       </el-card>
@@ -37,40 +37,49 @@
 </template>
 
 <script>
-import { getUserDetail, saveUserDetailById } from '@/api/user'
-import userInfo from './components/user-info.vue'
-import jobInfo from './components/job-info.vue'
-import Cookie from 'js-cookie'
+import { getUserDetail, saveUserDetailById } from '@/api/user.js'
+import UserInfo from './components/user-info.vue'
+import JobInfo from './components/job-info.vue'
+import Cookies from 'js-cookie'
 export default {
   data() {
     return {
       formData: {},
-      activeName: Cookie.get('tabActive') || 'job'
+      activeName: Cookies.get('employeeDetailTab') || 'account',
     }
   },
+  // 路由开启props,此时可以接收路由参数
+  props: {
+    id: {
+      required: true,
+      type: String,
+    },
+  },
+
   components: {
-    userInfo,
-    jobInfo
+    UserInfo,
+    JobInfo,
   },
 
   created() {
-    this.getUserInfo()
+    this.loadUserDetail()
+    // console.log(this.$attrs)
   },
 
   methods: {
-    async getUserInfo() {
+    async loadUserDetail() {
       const res = await getUserDetail(this.$route.params.id)
       this.formData = res
     },
     async onSave() {
       await saveUserDetailById(this.formData)
-      this.$message.success('修改成功')
+      this.$message.success('更新成功')
     },
-    tabHandleClick() {
-      Cookie.set('tabActive', this.activeName)
-    }
-  }
+    handleTabClick() {
+      Cookies.set('employeeDetailTab', this.activeName)
+    },
+  },
 }
 </script>
 
-<style scoped></style>
+<style scoped lang="less"></style>

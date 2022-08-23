@@ -1,13 +1,13 @@
+import Calendar from '@/components/Calendar'
 import PageTools from '@/components/PageTools'
 import MyTest from '@/components/MyTest'
-import UploadExcel from '@/components/uploadExcel'
-import UploadImg from './UploadImg'
-const components = [PageTools, MyTest, UploadExcel,UploadImg]
+import UploadExcel from '@/components/UploadExcel'
+import UploadImg from '@/components/UploadImg'
+const components = [PageTools, MyTest, UploadExcel, UploadImg,Calendar]
 export default {
   install(Vue) {
-    //  注册全局的通用栏组件对象
     components.forEach((component) => {
       Vue.component(component.name, component)
     })
-  }
+  },
 }

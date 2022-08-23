@@ -1,5 +1,5 @@
 <template>
-  <div></div>
+  <div>测试组件</div>
 </template>
 
 <script>
@@ -11,8 +11,8 @@ export default {
 
   created() {},
 
-  methods: {}
+  methods: {},
 }
 </script>
 
-<style scoped></style>
+<style scoped lang="less"></style>

@@ -1,18 +1,16 @@
 <template>
   <div class="dashboard-container">
     <div class="app-container">
-      <UploadExcel
-        :beforeUpload="excelSuccess"
-        :onSuccess="onSuccess"
-      ></UploadExcel>
+      <upload-excel :beforeUpload="excelSuccess" :onSuccess="onSuccess" />
     </div>
   </div>
 </template>
 
 <script>
 import employees from '@/constant/employees'
-import { importEmployee } from '@/api/employess'
+import { importEmployees } from '@/api/employees'
 import { formatTime } from '@/filters'
+const { importMapKeyPath } = employees
 export default {
   data() {
     return {}
@@ -21,6 +19,7 @@ export default {
   created() {},
 
   methods: {
+    // 上传前的处理
     excelSuccess({ name }) {
       if (!name.endsWith('.xlsx')) {
         this.$message.error('请选择xlsx文件')
@@ -28,14 +27,16 @@ export default {
       }
       return true
     },
+    // 上传成功
     async onSuccess({ header, results }) {
-      const importMapKeyPath = employees.importMapKeyPath
       const newArr = results.map((item) => {
         const obj = {}
         for (let key in importMapKeyPath) {
           if (key === '入职日期' || key === '转正日期') {
+            // excel 时间戳
             const timestamp = item[key]
-            const date = new Date((timestamp - 1) * 24 * 60 * 60 * 1000)
+            // 转换
+            const date = new Date((timestamp - 1) * 24 * 3600000)
             date.setFullYear(date.getFullYear() - 70)
             obj[importMapKeyPath[key]] = formatTime(date)
           } else {
@@ -44,14 +45,12 @@ export default {
         }
         return obj
       })
-      await importEmployee(newArr)
+      await importEmployees(newArr)
       this.$message.success('导入成功')
       this.$router.go(-1)
-      console.log('1', newArr)
-      console.log(importMapKeyPath)
-    }
-  }
+    },
+  },
 }
 </script>
 
-<style scoped></style>
+<style scoped lang="less"></style>
